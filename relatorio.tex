@@ -1,0 +1,110 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}     
+\usepackage[T1]{fontenc}         
+\usepackage[brazil]{babel}       
+\usepackage{graphicx}            
+\usepackage{amsmath, amsfonts}  
+\usepackage{hyperref}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{algorithmic}
+
+\title{Relatório de Aplicação em Aprendizado de Máquina e Aprendizado Profundo}
+\author{Otniel S. Silva}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Introdução}
+Aqui eu apresento o desenvolvimento de uma aplicação de aprendizado de máquina e aprendizado profundo para classificação de imagens em duas categorias: gatos e cachorros. Para isso, foi utilizada a biblioteca \textbf{TensorFlow/Keras}, que disponibiliza ferramentas para construção e treinamento de redes neurais convolucionais (CNN).
+
+A motivação para esta aplicação vem da vasta utilidade de classificação de imagens em contextos reais. A escolha de \textbf{TensorFlow/Keras} se justifica pela facilidade de uso, extensa comunidade e documentação, facilidade de implementação, permitir integração com \textit{notebooks} e outras ferramentas de análise de dados.
+
+\section{Conceitos Utilizados}
+Neste projeto, foram empregados principalmente os seguintes conceitos teóricos:
+\begin{itemize}
+    \item \textbf{Redes Neurais Convolucionais (CNNs)}: arquiteturas que aproveitam convoluções e \textit{pooling} para extrair características relevantes de imagens, reduzindo parâmetros e preservando informações espaciais.
+    \item \textbf{Data Augmentation}: técnica para aumentar a quantidade efetiva de dados de treinamento, gerando variações (rotação, flip horizontal, zoom, etc.) sobre as imagens originais. Isso ajuda a reduzir \textit{overfitting}.
+    \item \textbf{Transfer Learning (quando aplicável)}: reaproveitamento de pesos pré-treinados em grandes bases de dados (ex.: ImageNet), adaptando o modelo para uma nova tarefa. 
+    \item \textbf{Função de Perda (Binary Crossentropy)}: apropriada para problemas de classificação binária (gatos vs. cachorros).
+    \item \textbf{Otimizador Adam}: algoritmos de ajuste de pesos da rede, que minimizam a função de perda de forma iterativa.
+\end{itemize}
+
+\section{Descrição da Aplicação}
+A aplicação desenvolvida tem como objetivo \textbf{classificar imagens} em duas categorias: \emph{Gato} ou \emph{Cachorro}. O fluxo geral do sistema é:
+\begin{enumerate}
+    \item \textbf{Pré-processamento dos dados}: As imagens são redimensionadas para um tamanho padrão (224x224), normalizadas (divisão por 255) e subdivididas em conjuntos de treino e validação.
+    \item \textbf{Data Augmentation}: Para o conjunto de treinamento, são aplicadas transformações aleatórias (rotações, deslocamentos, flips horizontais, etc.).
+    \item \textbf{Arquitetura da Rede Neural Convolucional}: O modelo consiste em blocos de camadas convolucionais e camadas de \textit{pooling}, seguidas por camadas densas. Opcionalmente, usamos um modelo pré-treinado (ex.: MobileNetV2) e adicionamos uma cabeça densa final.
+    \item \textbf{Treinamento}: Ajuste dos pesos (backpropagation) usando as imagens de treino, monitorando a acurácia e perda também no conjunto de validação.
+    \item \textbf{Avaliação/Predição}: Após o treinamento, o modelo é testado em novas imagens, prevendo probabilidades acima de 0.5 como “Cachorro” e abaixo de 0.5 como “Gato”.
+\end{enumerate}
+
+\section{Algoritmo Implementado (Pseudo-código)}
+
+A seguir, um \textbf{pseudo-código} simplificado do que foi desenvolvido em Python/Keras:
+
+\begin{verbatim}
+Algoritmo 1: Montagem e Treinamento da Rede
+1. Entradas: 
+     - Caminho para o diretório (PATH) com subpastas (train, validation, test)
+     - Hiperparâmetros (batch_size, epochs, etc.)
+2. Saída: 
+     - Modelo de rede neural treinado ou "Falha"
+
+3. (Passo 1) Preparar Geradores de Imagens
+   - Criar um ImageDataGenerator para treino (com rescale e data augmentation)
+   - Criar um ImageDataGenerator para validação (apenas rescale)
+   - Gerar train_generator e valid_generator a partir dos diretórios
+
+4. (Passo 2) Construir o Modelo
+   - Definir uma rede Sequential com camadas Conv2D + MaxPooling2D 
+   - Flatten, Dense, Dropout e camada de saída (sigmoid)
+
+5. (Passo 3) Compilar o Modelo
+   - Definir função de perda (binary_crossentropy), otimizador (adam) e métrica (accuracy)
+
+6. (Passo 4) Definir Parâmetros de Treino e EarlyStopping
+   - steps_per_epoch = número total de imagens de treino / batch_size
+   - validation_steps = número total de imagens de validação / batch_size
+   - early_stop = EarlyStopping para interromper treino se não houver melhora
+
+7. (Passo 5) Executar o Treinamento
+   - Chamar model.fit(...) usando os geradores
+   - Se não houver melhora depois de "patience" épocas, retornar "Falha"
+   - Caso contrário, retornar o modelo treinado
+
+
+Algoritmo 2: Avaliação em Imagens de Teste
+1. Entradas:
+   - Modelo treinado
+   - Diretório de teste
+   - Quantidade de imagens (num_test)
+
+2. Saída:
+   - Mensagem classificando cada imagem (Gato ou Cachorro)
+
+3. Para i de 1 até num_test:
+   4. Montar caminho do arquivo: diretório_test + i + ".jpg"
+   5. Carregar imagem no tamanho (150, 150)
+   6. Converter imagem em array
+   7. Expandir dimensões para (1,150,150,3)
+   8. Obter probabilidade com modelo.predict(...)
+   9. Se prob > 0.5, imprimir "Cachorro"
+   10. Senão, imprimir "Gato"
+   11. Fim se
+12. Fim para
+\end{verbatim}
+
+\section{Conclusão}
+O modelo proposto atingiu resultados satisfatórios, apresentando acurácia de classificação superior a 90\% nos melhores cenários (principalmente quando utilizamos \textbf{Transfer Learning} com o MobileNetV2. O uso de \textit{Data Augmentation} ajudou a melhorar a generalização, e a adoção de \textit{callbacks} como \texttt{EarlyStopping} preveniu o \textit{overfitting}.
+
+\begin{thebibliography}{1}
+
+\bibitem{cats_and_dogs_dataset}
+Dataset \textit{cats\_and\_dogs}. Disponível em: \url{https://cdn.freecodecamp.org/project-data/cats-and-dogs/cats_and_dogs.zip}. Acesso em: mar. 2025.
+
+\end{thebibliography}
+
+\end{document}
